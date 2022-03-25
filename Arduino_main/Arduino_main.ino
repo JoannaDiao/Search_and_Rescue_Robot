@@ -95,6 +95,11 @@ double prev_pitch = 0;
 int maxLeftTOFValue = 150;   // tile width - robot width
 int minleftTOFValue = 100;   // tile width / 3
 
+// offsets
+int heading_offset = 0; 
+int pitch_offset = 0; 
+int left_tof_offset = 0;
+
 // --------------------------------- // INITIALIZE HARDWARE // ---------------------------------
 Motor left_motor(L_MOTOR_PWM, L_MOTOR_PIN1, L_MOTOR_PIN2);
 Motor right_motor(R_MOTOR_PWM, R_MOTOR_PIN1, R_MOTOR_PIN2);
@@ -313,7 +318,7 @@ void setup() {
     Serial.println(F("Set up all sensors"));
 }
 
-int loop() {
+void loop() {
     imu.updateIMU();
 
     int curr_position = getPosition();
@@ -338,7 +343,7 @@ int loop() {
         turnRight();
         break;
     case LEFT_ADJUST:
-        adjust('L')
+        adjust('L');
         break;
     case RIGHT_ADJUST:
         adjust('R');

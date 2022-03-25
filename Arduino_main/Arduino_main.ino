@@ -5,10 +5,10 @@
 #endif
 
 #include <ArduinoSTL.h>
-#include <HashMap.h>
+//#include <HashMap.h>
 #include <sensors.h>
-#include <microTuple.h>
-#include <map>
+//#include <microTuple.h>
+//#include <map>
 
 // --------------------------------- // PIN SETUP // ---------------------------------
 // Digital pins connected to TOF sensors
@@ -71,8 +71,8 @@ const int TURN_TOLERANCE = 5;
 
 // --------------------------------- // GLOBAL VARIABLES // ---------------------------------
 // Robot States
-std::pair<double, double> robot_position;   //unused
-robot_orientation current_orientation;      //unused
+//std::pair<double, double> robot_position;   //unused
+//robot_orientation current_orientation;      //unused
 robot_state_t robot_state = INIT;
 bool justTurnt = false;
 

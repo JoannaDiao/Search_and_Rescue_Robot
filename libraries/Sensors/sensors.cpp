@@ -52,7 +52,7 @@ void Motor::backward(uint16_t pwm_signal = 100)
 
 void Motor::stop()
 {
-    analogWrite(speedPin, 0);
+    analogWrite(speedPin, MAX_PWM);
     digitalWrite(forwardPin, LOW);
     digitalWrite(backwardPin, LOW);
 }
@@ -107,16 +107,17 @@ TOF::TOF(uint16_t lox_address, uint16_t shutdown_pin, bool is_left = false)
     loxAddress = lox_address;
     shutdownPin = shutdown_pin;
     isLeft = is_left;
-    lastTime = 0;
-    distance = 0;
 }
 void TOF::init()
 {
-    Adafruit_VL53L0X::VL53L0X_Sense_config_t config = isLeft ? Adafruit_VL53L0X::VL53L0X_SENSE_HIGH_ACCURACY:Adafruit_VL53L0X::VL53L0X_SENSE_LONG_RANGE;
+    Adafruit_VL53L0X::VL53L0X_Sense_config_t config = isLeft ? Adafruit_VL53L0X::VL53L0X_SENSE_DEFAULT:Adafruit_VL53L0X::VL53L0X_SENSE_LONG_RANGE;
     if (!lox.begin(loxAddress, false, &Wire, config)) {
         Serial.println(F("Failed to boot VL53L0X"));
         while (1);
     }
+    if (!isLeft) {
+    	lox.startRangeContinuous();
+	}
 #ifdef DEBUG_ON
     Serial.println(F("Found VL53L0X"));
 #endif
@@ -124,21 +125,24 @@ void TOF::init()
 
 int TOF::getDistance()
 {
-    uint16_t measure = -1;
+	uint16_t measure = -1;
+	if (!isLeft) {
 
-    if (lox.isRangeComplete()) {
-        // ignore greater than 1m for left sensor and 2m for front
-        uint16_t MAX_D = isLeft ? 1000 : 2000;
-
-        measure = lox.readRangeResult();
-        distance = measure > MAX_D ? -1 : measure;
-        lastTime = micros();
-    } else if (micros() - lastTime > 500) {
-        // reset distance if no reading for more than 50 ms
-        distance = -1;
-    }
-
-    return distance;
+	    if (lox.isRangeComplete()) {
+	        // ignore greater than 1m for left sensor and 2m for front
+	        uint16_t MAX_D = isLeft ? 1000 : 2000;
+	
+	        measure = lox.readRangeResult();
+	        distance = measure > MAX_D ? -1 : measure;
+	        lastTime = micros();
+	    }
+	
+	    return distance;
+	} else {
+		measure = lox.readRange();
+		
+	    return measure > 1000 ? -1 : measure;
+	}
 }
 
 void IMU::init()
@@ -265,6 +269,14 @@ void IMU::calibrate(float* mag_hardiron, float* mag_softiron, float mag_field, i
     }
     cal.printSavedCalibration()
 #endif
+}
+
+float IMU::getGyroPitch()
+{
+	sensors_event_t gyro_event;
+	gyroscope->getEvent(&gyro_event);
+	
+	return gyro_event.gyro.x * SENSORS_RADS_TO_DPS;
 }
 
 // vector math
